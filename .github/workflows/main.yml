@@ -1,0 +1,36 @@
+name: Daily Contribute
+
+on:
+  schedule:
+    - cron: '0 13 * * *' # Runs every day at 8:00 am Eastern Time (UTC-5)
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  contribute:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Set up git
+      env:
+        GITHUB_TOKEN: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
+      run: |
+        git config --global user.name cristian-rincon
+        git config --global user.email "cristian.o.rincon.b@gmail.com"
+        git remote set-url origin https://cristian-rincon:${{ secrets.ACTIONS_GITHUB_TOKEN }}@github.com/cristian-rincon/redesigned-enigma.git
+    - name: Run contribute.py
+      env:
+        GITHUB_TOKEN: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
+      run: |
+        python contribute.py \
+        --max_commits=12 --frequency=60 \
+        --repository=https://cristian-rincon:${{ secrets.ACTIONS_GITHUB_TOKEN }}@github.com/cristian-rincon/redesigned-enigma.git \
+        --user_name="cristian-rincon" \
+        --user_email="cristian.o.rincon.b@gmail.com"

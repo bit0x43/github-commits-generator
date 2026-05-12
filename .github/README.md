@@ -4,7 +4,7 @@ GitHub Activity Generator [![Gitter](https://badges.gitter.im/github-activity-ge
 A script that helps you *instantly* generate a beautiful GitHub Contributions Graph
 for the last year.
 
-### Before :neutral_face: :no_mouth: :unamused: 
+### Before :neutral_face: :no_mouth: :unamused:
 ![Before](before.png)
 ### After :muscle: :relieved: :heart: :sunglasses: :metal: :horse: :wink: :fire: :dancer: :santa: :fireworks: :cherries: :tada:
 ![After](after.png)
@@ -29,8 +29,8 @@ python contribute.py --mode daily --repository=git@github.com:user/repo.git
 The daily mode is also run automatically via GitHub Actions (see `.github/workflows/daily.yml`).
 
 ## How it works
-The script initializes an empty git repository, creates a text file and starts 
-generating changes to the file for every day within the last year (0-20 commits 
+The script initializes an empty git repository, creates a text file and starts
+generating changes to the file for every day within the last year (0-20 commits
 per day). Once the commits are generated it links the created repository with
 the remote repository and pushes the changes.
 
@@ -40,7 +40,7 @@ is judging your professional skills by the graph at your GitHub profile (which
 caries no value) they deserve to see a rich graph.
 
 For that matter, you might want to make the generated repository private. It is free
-on GitHub. Now, you only need to set up your account 
+on GitHub. Now, you only need to set up your account
 [to show private contributions](https://help.github.com/en/articles/publicizing-or-hiding-your-private-contributions-on-your-profile).
 This way GitHub users will see that you contributed something, but they won't be
 able to see what exactly.

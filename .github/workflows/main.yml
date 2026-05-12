@@ -37,7 +37,7 @@ jobs:
         TARGET_EMAIL: ${{ secrets.TARGET_EMAIL }}
         TARGET_REPO: ${{ secrets.TARGET_REPO }}
       run: |
-        python contribute.py \
+        python contribute.py --mode daily \
         --max_commits=12 --frequency=60 \
         --repository=https://x-access-token:${{ secrets.ACTIONS_GITHUB_TOKEN }}@github.com/$TARGET_REPO.git \
         --user_name="$TARGET_USER" \

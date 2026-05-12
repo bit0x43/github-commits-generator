@@ -1,118 +1,132 @@
-GitHub Activity Generator [![Gitter](https://badges.gitter.im/github-activity-generator/community.svg)](https://gitter.im/github-activity-generator/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![build](https://github.com/Shpota/github-activity-generator/workflows/build/badge.svg)](https://github.com/Shpota/github-activity-generator/actions?query=workflow%3Abuild)
-=========================
+# GitHub Activity Generator
 
-A script that helps you *instantly* generate a beautiful GitHub Contributions Graph
-for the last year.
+Generate a GitHub contribution graph for any target repository.
 
-### Before :neutral_face: :no_mouth: :unamused:
-![Before](before.png)
-### After :muscle: :relieved: :heart: :sunglasses: :metal: :horse: :wink: :fire: :dancer: :santa: :fireworks: :cherries: :tada:
-![After](after.png)
+## Features
 
-## How to use
-1. Create an empty GitHub repository. Do not initialize it.
-2. Download [the contribute.py script](https://github.com/Shpota/github-activity-generator/archive/master.zip)
-and execute it passing the link on the created repository
+- **Backfill Mode** — Generate historical commits for the past year
+- **Daily Mode** — Create a single commit for today
+- **GitHub Actions** — Run automatically on a schedule
+- **Parallel Generation** — Optional multi-threaded backfill
 
-### Two Modes
+## Prerequisites
 
-**Backfill Mode** (default) - Generate historical commits for the past year:
-```sh
-python contribute.py --mode backfill --repository=git@github.com:user/repo.git
-```
-
-**Daily Mode** - Create a single commit for today:
-```sh
-python contribute.py --mode daily --repository=git@github.com:user/repo.git
-```
-
-The daily mode is also run automatically via GitHub Actions (see `.github/workflows/daily.yml`).
-
-## How it works
-The script initializes an empty git repository, creates a text file and starts
-generating changes to the file for every day within the last year (0-20 commits
-per day). Once the commits are generated it links the created repository with
-the remote repository and pushes the changes.
-
-## Making contributions private
-Note: This script doesn't encourage you to cheat. Cheating is bad. But if anybody
-is judging your professional skills by the graph at your GitHub profile (which
-caries no value) they deserve to see a rich graph.
-
-For that matter, you might want to make the generated repository private. It is free
-on GitHub. Now, you only need to set up your account
-[to show private contributions](https://help.github.com/en/articles/publicizing-or-hiding-your-private-contributions-on-your-profile).
-This way GitHub users will see that you contributed something, but they won't be
-able to see what exactly.
-
-## Customizations
-You can customize how often to commit and how many commits a day to make, etc.
-
-For instance, with the following command, the script will make from 1 to 12
-commits a day. It will commit 60% days a year.
-```sh
-python contribute.py --max_commits=12 --frequency=60 --repository=git@github.com:user/repo.git
-```
-Use `--no_weekends` option if you don't want to commit on weekends
-```sh
-python contribute.py --no_weekends
-```
-If you do not set the `--repository` argument the script won't push the changes.
-This way you can import the generated repository yourself.
-
-Use `--days_before` and `--days_after` to specify how many days before the current
-date the script should start committing, and how many days after the current date it
-will keep committing.
-
-```sh
-python contribute.py --days_before=10 --days_after=15
-```
-
-### Performance Optimization
-For large backfills (365 days), use parallel mode for faster generation:
-```sh
-python contribute.py --parallel --days_before=365
-```
-This uses 4 worker threads to generate commits in parallel.
-
-Run `python contribute.py --help` to get help.
-
-## System requirements
 - Python 3.12 or higher
-- Git installed
+- Git
+- A GitHub Personal Access Token (PAT) with `repo` scope
+
+## Quick Start
+
+### 1. Clone this repository
+
+```bash
+git clone https://github.com/bit0x43/github-commits-generator.git
+cd github-commits-generator
+```
+
+### 2. Create a target repository
+
+Create a new **empty** GitHub repository (do not initialize with README or .gitignore).
+
+### 3. Run locally
+
+```bash
+python contribute.py \
+  --mode daily \
+  --repository=https://x-access-token:YOUR_PAT@github.com/username/target-repo.git \
+  --user_name="Your Name" \
+  --user_email="your@email.com"
+```
+
+Replace:
+- `YOUR_PAT` — your GitHub Personal Access Token
+- `username/target-repo` — your target repository
+- `Your Name` / `your@email.com` — your GitHub credentials
+
+## Usage
+
+### Local Usage
+
+**Daily mode** — One commit for today:
+```bash
+python contribute.py --mode daily --repository=...
+```
+
+**Backfill mode** — Historical commits (default):
+```bash
+python contribute.py --mode backfill --repository=...
+```
+
+**Backfill with options:**
+```bash
+python contribute.py \
+  --mode backfill \
+  --days_before=365 \
+  --max_commits=10 \
+  --frequency=80 \
+  --no_weekends \
+  --parallel \
+  --repository=...
+```
+
+### GitHub Actions (Automated)
+
+The `main.yml` workflow runs daily at 13:00 UTC. To enable:
+
+1. Go to your repository **Settings** → **Secrets and variables** → **Actions**
+2. Add these secrets:
+   - `TARGET_USER` — your GitHub username
+   - `TARGET_EMAIL` — your GitHub email
+   - `TARGET_REPO` — target repository (e.g., `username/target-repo`)
+3. The workflow will run automatically every day
+
+You can also trigger manually:
+- Go to **Actions** → **Daily Contribute** → **Run workflow**
+
+## Options
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-m, --mode` | `backfill` | Execution mode: `backfill` or `daily` |
+| `-mc, --max_commits` | 10 | Max commits per day (1-20) |
+| `-fr, --frequency` | 80 | Percentage of active days (0-100) |
+| `-nw, --no_weekends` | false | Skip weekends |
+| `-db, --days_before` | 365 | Days to backfill |
+| `-da, --days_after` | 0 | Future days to include |
+| `-p, --parallel` | false | Use 4 worker threads |
+| `-r, --repository` | — | Target repo URL (empty = local only) |
+| `-un, --user_name` | — | Git user name |
+| `-ue, --user_email` | — | Git user email |
+
+## Creating a GitHub Personal Access Token
+
+1. Go to **GitHub Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**
+2. Click **Generate new token (classic)**
+3. Select scopes: `repo` (full control)
+4. Copy the token (it won't be shown again)
 
 ## Troubleshooting
-#### I performed the script but my GitHub activity is still the same.
-It might take several minutes for GitHub to reindex your activity. Check
-if the repository has new commits and wait a couple of minutes.
-#### The changes are still not reflected after some time.
-Are you using a private repository? If so, enable showing private contributions
-[following this guide](https://help.github.com/en/articles/publicizing-or-hiding-your-private-contributions-on-your-profile).
 
-#### Still no luck
-Make sure the email address you have in GitHub is the same as you have in
-your local settings. GitHub counts contributions only when they are made
-using the corresponding email.
+### "Repository not found"
+- Ensure the target repository exists and is empty
+- Verify your PAT has `repo` scope
 
-Check your local email settings with:
-```
-git config --get user.email
-```
-If it doesn't match with the one from GitHub reset it with
-```
-git config --global user.email "user@example.com"
-```
-Create a new repository and rerun the script.
+### "Authentication failed"
+- Regenerate your GitHub PAT
+- Check the repository URL format is correct
 
-#### There are errors in the logs of the script.
-Maybe you tried to use an existing repository. If so, make sure you are using
-a new one which is *not initialized*.
+### "Email not recognized"
+- Ensure the email in `--user_email` matches your GitHub account email
+- Check with: `git config --global user.email`
 
-#### Backfill is taking too long
-Use `--parallel` flag for multi-threaded generation:
-```
-python contribute.py --parallel --days_before=365
-```
-A full year backfill typically completes in 30-40 seconds (sequential) or 10-15 seconds (parallel).
+### "No commits appearing on GitHub"
+- Wait 2-5 minutes — GitHub reindexes periodically
+- For private repos, enable "Private contributions" on your profile
 
-**If none of the options helped, open an issue and I will fix it as soon as possible.**
+### "Workflow not running"
+- Verify secrets are set in repository Settings
+- Check the Actions tab for workflow runs
+
+## License
+
+MIT License — do what you want with it.

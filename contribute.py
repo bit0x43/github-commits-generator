@@ -33,9 +33,14 @@ def run_daily(args):
         if end > start:  # Valid repository path
             directory = repository[start:end]
 
-    os.makedirs(directory, exist_ok=True)
-    os.chdir(directory)
-    run(["git", "init", "-b", "main"])
+    # If repository provided, clone it to preserve history; otherwise create fresh
+    if repository and repository.strip():
+        run(["git", "clone", repository, directory])
+        os.chdir(directory)
+    else:
+        os.makedirs(directory, exist_ok=True)
+        os.chdir(directory)
+        run(["git", "init", "-b", "main"])
 
     if user_name:
         run(["git", "config", "user.name", user_name])
@@ -47,8 +52,7 @@ def run_daily(args):
     contribute(commit_date)
 
     if repository and repository.strip():
-        run(["git", "remote", "add", "origin", repository])
-        run(["git", "push", "-u", "origin", "main", "--force"])
+        run(["git", "push", "-u", "origin", "main"])
 
     print("\nDaily contribution " + "\x1b[6;30;42mcompleted successfully\x1b[0m!")
 
@@ -77,9 +81,14 @@ def run_backfill(args):
         sys.exit("days_after must not be negative")
     parallel = getattr(args, "parallel", False)
 
-    os.makedirs(directory, exist_ok=True)
-    os.chdir(directory)
-    run(["git", "init", "-b", "main"])
+    # If repository provided, clone it to preserve history; otherwise create fresh
+    if repository and repository.strip():
+        run(["git", "clone", repository, directory])
+        os.chdir(directory)
+    else:
+        os.makedirs(directory, exist_ok=True)
+        os.chdir(directory)
+        run(["git", "init", "-b", "main"])
 
     if user_name:
         run(["git", "config", "user.name", user_name])
@@ -103,8 +112,7 @@ def run_backfill(args):
             contribute(date)
 
     if repository and repository.strip():
-        run(["git", "remote", "add", "origin", repository])
-        run(["git", "push", "-u", "origin", "main", "--force"])
+        run(["git", "push", "-u", "origin", "main"])
 
     print("\nBackfill generation " + "\x1b[6;30;42mcompleted successfully\x1b[0m!")
 

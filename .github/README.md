@@ -11,13 +11,22 @@ for the last year.
 
 ## How to use
 1. Create an empty GitHub repository. Do not initialize it.
-2. Download [the contribute.py script](https://github.com/Shpota/github-activity-generator/archive/master.zip) 
+2. Download [the contribute.py script](https://github.com/Shpota/github-activity-generator/archive/master.zip)
 and execute it passing the link on the created repository
+
+### Two Modes
+
+**Backfill Mode** (default) - Generate historical commits for the past year:
 ```sh
-python contribute.py --repository=git@github.com:user/repo.git
+python contribute.py --mode backfill --repository=git@github.com:user/repo.git
 ```
-Now you have a repository with lots of changes in your GitHub account.
-Note: it takes several minutes for GitHub to reindex your activity.
+
+**Daily Mode** - Create a single commit for today:
+```sh
+python contribute.py --mode daily --repository=git@github.com:user/repo.git
+```
+
+The daily mode is also run automatically via GitHub Actions (see `.github/workflows/daily.yml`).
 
 ## How it works
 The script initializes an empty git repository, creates a text file and starts 
@@ -39,7 +48,7 @@ able to see what exactly.
 ## Customizations
 You can customize how often to commit and how many commits a day to make, etc.
 
-For instance, with the following command, the script will make from 1 to 12 
+For instance, with the following command, the script will make from 1 to 12
 commits a day. It will commit 60% days a year.
 ```sh
 python contribute.py --max_commits=12 --frequency=60 --repository=git@github.com:user/repo.git
@@ -48,7 +57,7 @@ Use `--no_weekends` option if you don't want to commit on weekends
 ```sh
 python contribute.py --no_weekends
 ```
-If you do not set the `--repository` argument the script won't push the changes. 
+If you do not set the `--repository` argument the script won't push the changes.
 This way you can import the generated repository yourself.
 
 Use `--days_before` and `--days_after` to specify how many days before the current
@@ -58,6 +67,13 @@ will keep committing.
 ```sh
 python contribute.py --days_before=10 --days_after=15
 ```
+
+### Performance Optimization
+For large backfills (365 days), use parallel mode for faster generation:
+```sh
+python contribute.py --parallel --days_before=365
+```
+This uses 4 worker threads to generate commits in parallel.
 
 Run `python contribute.py --help` to get help.
 
@@ -75,7 +91,7 @@ Are you using a private repository? If so, enable showing private contributions
 
 #### Still no luck
 Make sure the email address you have in GitHub is the same as you have in
-your local settings. GitHub counts contributions only when they are made 
+your local settings. GitHub counts contributions only when they are made
 using the corresponding email.
 
 Check your local email settings with:
@@ -91,5 +107,12 @@ Create a new repository and rerun the script.
 #### There are errors in the logs of the script.
 Maybe you tried to use an existing repository. If so, make sure you are using
 a new one which is *not initialized*.
+
+#### Backfill is taking too long
+Use `--parallel` flag for multi-threaded generation:
+```
+python contribute.py --parallel --days_before=365
+```
+A full year backfill typically completes in 30-40 seconds (sequential) or 10-15 seconds (parallel).
 
 **If none of the options helped, open an issue and I will fix it as soon as possible.**

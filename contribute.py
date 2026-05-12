@@ -6,6 +6,8 @@ from datetime import timedelta
 from random import randint
 from subprocess import Popen
 import sys
+import threading
+import queue
 
 
 def main(def_args=sys.argv[1:]):
@@ -69,6 +71,8 @@ def run_backfill(args):
     days_after = args.days_after
     if days_after < 0:
         sys.exit('days_after must not be negative')
+    parallel = getattr(args, 'parallel', False)
+
     os.mkdir(directory)
     os.chdir(directory)
     run(['git', 'init', '-b', 'main'])
@@ -79,6 +83,7 @@ def run_backfill(args):
     if user_email is not None:
         run(['git', 'config', 'user.email', user_email])
 
+    commit_dates = []
     start_date = curr_date.replace(hour=20, minute=0) - timedelta(days_before)
     for day in (start_date + timedelta(n) for n
                 in range(days_before + days_after)):
@@ -86,7 +91,13 @@ def run_backfill(args):
                 and randint(0, 100) < frequency:
             for commit_time in (day + timedelta(minutes=m)
                                 for m in range(contributions_per_day(args))):
-                contribute(commit_time)
+                commit_dates.append(commit_time)
+
+    if parallel and len(commit_dates) > 10:
+        commit_backlog(commit_dates)
+    else:
+        for date in commit_dates:
+            contribute(date)
 
     if repository is not None:
         run(['git', 'remote', 'add', 'origin', repository])
@@ -94,6 +105,38 @@ def run_backfill(args):
 
     print('\nBackfill generation ' +
           '\x1b[6;30;42mcompleted successfully\x1b[0m!')
+
+
+def commit_backlog(dates):
+    q = queue.Queue()
+    results = []
+
+    def worker():
+        while True:
+            date = q.get()
+            if date is None:
+                break
+            try:
+                contribute(date)
+                results.append('ok')
+            except Exception as e:
+                results.append(f'error: {e}')
+            q.task_done()
+
+    threads = []
+    for _ in range(min(4, len(dates))):
+        t = threading.Thread(target=worker)
+        t.start()
+        threads.append(t)
+
+    for date in dates:
+        q.put(date)
+
+    for _ in threads:
+        q.put(None)
+
+    for t in threads:
+        t.join()
 
 
 def contribute(date):
@@ -168,6 +211,10 @@ def arguments(argsval):
                         adding commits. For example: if it is set to 30 the
                         last commit will be on a future date which is the
                         current date plus 30 days.""")
+    parser.add_argument('-p', '--parallel', action='store_true', default=False,
+                        required=False, help="""Enable parallel commit generation
+                        for faster backfill. Uses 4 worker threads. Default is
+                        false (sequential).""")
     return parser.parse_args(argsval)
 
 

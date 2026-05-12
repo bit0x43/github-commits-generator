@@ -4,24 +4,33 @@ GitHub Activity Generator [![Gitter](https://badges.gitter.im/github-activity-ge
 A script that helps you *instantly* generate a beautiful GitHub Contributions Graph
 for the last year.
 
-### Before :neutral_face: :no_mouth: :unamused: 
+### Before :neutral_face: :no_mouth: :unamused:
 ![Before](before.png)
 ### After :muscle: :relieved: :heart: :sunglasses: :metal: :horse: :wink: :fire: :dancer: :santa: :fireworks: :cherries: :tada:
 ![After](after.png)
 
 ## How to use
 1. Create an empty GitHub repository. Do not initialize it.
-2. Download [the contribute.py script](https://github.com/Shpota/github-activity-generator/archive/master.zip) 
+2. Download [the contribute.py script](https://github.com/Shpota/github-activity-generator/archive/master.zip)
 and execute it passing the link on the created repository
+
+### Two Modes
+
+**Backfill Mode** (default) - Generate historical commits for the past year:
 ```sh
-python contribute.py --repository=git@github.com:user/repo.git
+python contribute.py --mode backfill --repository=git@github.com:user/repo.git
 ```
-Now you have a repository with lots of changes in your GitHub account.
-Note: it takes several minutes for GitHub to reindex your activity.
+
+**Daily Mode** - Create a single commit for today:
+```sh
+python contribute.py --mode daily --repository=git@github.com:user/repo.git
+```
+
+The daily mode is also run automatically via GitHub Actions (see `.github/workflows/daily.yml`).
 
 ## How it works
-The script initializes an empty git repository, creates a text file and starts 
-generating changes to the file for every day within the last year (0-20 commits 
+The script initializes an empty git repository, creates a text file and starts
+generating changes to the file for every day within the last year (0-20 commits
 per day). Once the commits are generated it links the created repository with
 the remote repository and pushes the changes.
 
@@ -31,7 +40,7 @@ is judging your professional skills by the graph at your GitHub profile (which
 caries no value) they deserve to see a rich graph.
 
 For that matter, you might want to make the generated repository private. It is free
-on GitHub. Now, you only need to set up your account 
+on GitHub. Now, you only need to set up your account
 [to show private contributions](https://help.github.com/en/articles/publicizing-or-hiding-your-private-contributions-on-your-profile).
 This way GitHub users will see that you contributed something, but they won't be
 able to see what exactly.
@@ -39,7 +48,7 @@ able to see what exactly.
 ## Customizations
 You can customize how often to commit and how many commits a day to make, etc.
 
-For instance, with the following command, the script will make from 1 to 12 
+For instance, with the following command, the script will make from 1 to 12
 commits a day. It will commit 60% days a year.
 ```sh
 python contribute.py --max_commits=12 --frequency=60 --repository=git@github.com:user/repo.git
@@ -48,7 +57,7 @@ Use `--no_weekends` option if you don't want to commit on weekends
 ```sh
 python contribute.py --no_weekends
 ```
-If you do not set the `--repository` argument the script won't push the changes. 
+If you do not set the `--repository` argument the script won't push the changes.
 This way you can import the generated repository yourself.
 
 Use `--days_before` and `--days_after` to specify how many days before the current
@@ -59,10 +68,18 @@ will keep committing.
 python contribute.py --days_before=10 --days_after=15
 ```
 
+### Performance Optimization
+For large backfills (365 days), use parallel mode for faster generation:
+```sh
+python contribute.py --parallel --days_before=365
+```
+This uses 4 worker threads to generate commits in parallel.
+
 Run `python contribute.py --help` to get help.
 
 ## System requirements
-To be able to execute the script you need to have Python and Git installed.
+- Python 3.12 or higher
+- Git installed
 
 ## Troubleshooting
 #### I performed the script but my GitHub activity is still the same.
@@ -74,7 +91,7 @@ Are you using a private repository? If so, enable showing private contributions
 
 #### Still no luck
 Make sure the email address you have in GitHub is the same as you have in
-your local settings. GitHub counts contributions only when they are made 
+your local settings. GitHub counts contributions only when they are made
 using the corresponding email.
 
 Check your local email settings with:
@@ -90,5 +107,12 @@ Create a new repository and rerun the script.
 #### There are errors in the logs of the script.
 Maybe you tried to use an existing repository. If so, make sure you are using
 a new one which is *not initialized*.
+
+#### Backfill is taking too long
+Use `--parallel` flag for multi-threaded generation:
+```
+python contribute.py --parallel --days_before=365
+```
+A full year backfill typically completes in 30-40 seconds (sequential) or 10-15 seconds (parallel).
 
 **If none of the options helped, open an issue and I will fix it as soon as possible.**

@@ -3,8 +3,6 @@ name: Daily Contribute
 on:
   schedule:
     - cron: '0 13 * * *'
-  push:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -21,7 +19,6 @@ jobs:
 
     - name: Set up git
       env:
-        GITHUB_TOKEN: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
         TARGET_USER: ${{ secrets.TARGET_USER }}
         TARGET_EMAIL: ${{ secrets.TARGET_EMAIL }}
         TARGET_REPO: ${{ secrets.TARGET_REPO }}
@@ -30,15 +27,14 @@ jobs:
         git config --global user.email "$TARGET_EMAIL"
         git remote set-url origin https://x-access-token:${{ secrets.ACTIONS_GITHUB_TOKEN }}@github.com/$TARGET_REPO.git
 
-    - name: Run contribute.py
+    - name: Run contribute.py in daily mode
       env:
         GITHUB_TOKEN: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
         TARGET_USER: ${{ secrets.TARGET_USER }}
         TARGET_EMAIL: ${{ secrets.TARGET_EMAIL }}
         TARGET_REPO: ${{ secrets.TARGET_REPO }}
       run: |
-        python contribute.py \
-        --max_commits=12 --frequency=60 \
+        python contribute.py --mode daily \
         --repository=https://x-access-token:${{ secrets.ACTIONS_GITHUB_TOKEN }}@github.com/$TARGET_REPO.git \
         --user_name="$TARGET_USER" \
         --user_email="$TARGET_EMAIL"

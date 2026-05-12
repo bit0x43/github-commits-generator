@@ -1,20 +1,19 @@
 #!/usr/bin/env python
 import argparse
 import os
-from datetime import datetime
-from datetime import timedelta
-from random import randint
-from subprocess import Popen
+import queue
 import sys
 import threading
-import queue
+from datetime import datetime, timedelta
+from random import randint
+from subprocess import Popen
 
 
 def main(def_args=sys.argv[1:]):
     args = arguments(def_args)
     mode = args.mode
 
-    if mode == 'daily':
+    if mode == "daily":
         run_daily(args)
     else:
         run_backfill(args)
@@ -22,75 +21,73 @@ def main(def_args=sys.argv[1:]):
 
 def run_daily(args):
     curr_date = datetime.now()
-    directory = 'repository-' + curr_date.strftime('%Y-%m-%d-%H-%M-%S')
+    directory = "repository-" + curr_date.strftime("%Y-%m-%d-%H-%M-%S")
     repository = args.repository
     user_name = args.user_name
     user_email = args.user_email
 
     if repository is not None:
-        start = repository.rfind('/') + 1
-        end = repository.rfind('.')
+        start = repository.rfind("/") + 1
+        end = repository.rfind(".")
         directory = repository[start:end]
 
     os.mkdir(directory)
     os.chdir(directory)
-    run(['git', 'init', '-b', 'main'])
+    run(["git", "init", "-b", "main"])
 
     if user_name is not None:
-        run(['git', 'config', 'user.name', user_name])
+        run(["git", "config", "user.name", user_name])
 
     if user_email is not None:
-        run(['git', 'config', 'user.email', user_email])
+        run(["git", "config", "user.email", user_email])
 
     commit_date = curr_date.replace(hour=20, minute=0)
     contribute(commit_date)
 
     if repository is not None:
-        run(['git', 'remote', 'add', 'origin', repository])
-        run(['git', 'push', '-u', 'origin', 'main', '--force'])
+        run(["git", "remote", "add", "origin", repository])
+        run(["git", "push", "-u", "origin", "main", "--force"])
 
-    print('\nDaily contribution ' +
-          '\x1b[6;30;42mcompleted successfully\x1b[0m!')
+    print("\nDaily contribution " + "\x1b[6;30;42mcompleted successfully\x1b[0m!")
 
 
 def run_backfill(args):
     curr_date = datetime.now()
-    directory = 'repository-' + curr_date.strftime('%Y-%m-%d-%H-%M-%S')
+    directory = "repository-" + curr_date.strftime("%Y-%m-%d-%H-%M-%S")
     repository = args.repository
     user_name = args.user_name
     user_email = args.user_email
     if repository is not None:
-        start = repository.rfind('/') + 1
-        end = repository.rfind('.')
+        start = repository.rfind("/") + 1
+        end = repository.rfind(".")
         directory = repository[start:end]
     no_weekends = args.no_weekends
     frequency = args.frequency
     days_before = args.days_before
     if days_before < 0:
-        sys.exit('days_before must not be negative')
+        sys.exit("days_before must not be negative")
     days_after = args.days_after
     if days_after < 0:
-        sys.exit('days_after must not be negative')
-    parallel = getattr(args, 'parallel', False)
+        sys.exit("days_after must not be negative")
+    parallel = getattr(args, "parallel", False)
 
     os.mkdir(directory)
     os.chdir(directory)
-    run(['git', 'init', '-b', 'main'])
+    run(["git", "init", "-b", "main"])
 
     if user_name is not None:
-        run(['git', 'config', 'user.name', user_name])
+        run(["git", "config", "user.name", user_name])
 
     if user_email is not None:
-        run(['git', 'config', 'user.email', user_email])
+        run(["git", "config", "user.email", user_email])
 
     commit_dates = []
     start_date = curr_date.replace(hour=20, minute=0) - timedelta(days_before)
-    for day in (start_date + timedelta(n) for n
-                in range(days_before + days_after)):
-        if (not no_weekends or day.weekday() < 5) \
-                and randint(0, 100) < frequency:
-            for commit_time in (day + timedelta(minutes=m)
-                                for m in range(contributions_per_day(args))):
+    for day in (start_date + timedelta(n) for n in range(days_before + days_after)):
+        if (not no_weekends or day.weekday() < 5) and randint(0, 100) < frequency:
+            for commit_time in (
+                day + timedelta(minutes=m) for m in range(contributions_per_day(args))
+            ):
                 commit_dates.append(commit_time)
 
     if parallel and len(commit_dates) > 10:
@@ -100,11 +97,10 @@ def run_backfill(args):
             contribute(date)
 
     if repository is not None:
-        run(['git', 'remote', 'add', 'origin', repository])
-        run(['git', 'push', '-u', 'origin', 'main', '--force'])
+        run(["git", "remote", "add", "origin", repository])
+        run(["git", "push", "-u", "origin", "main", "--force"])
 
-    print('\nBackfill generation ' +
-          '\x1b[6;30;42mcompleted successfully\x1b[0m!')
+    print("\nBackfill generation " + "\x1b[6;30;42mcompleted successfully\x1b[0m!")
 
 
 def commit_backlog(dates):
@@ -118,9 +114,9 @@ def commit_backlog(dates):
                 break
             try:
                 contribute(date)
-                results.append('ok')
+                results.append("ok")
             except Exception as e:
-                results.append(f'error: {e}')
+                results.append(f"error: {e}")
             q.task_done()
 
     threads = []
@@ -140,11 +136,19 @@ def commit_backlog(dates):
 
 
 def contribute(date):
-    with open(os.path.join(os.getcwd(), 'README.md'), 'a') as file:
-        file.write(message(date) + '\n\n')
-    run(['git', 'add', '.'])
-    run(['git', 'commit', '-m', '"%s"' % message(date),
-         '--date', date.strftime('"%Y-%m-%d %H:%M:%S"')])
+    with open(os.path.join(os.getcwd(), "README.md"), "a") as file:
+        file.write(message(date) + "\n\n")
+    run(["git", "add", "."])
+    run(
+        [
+            "git",
+            "commit",
+            "-m",
+            '"%s"' % message(date),
+            "--date",
+            date.strftime('"%Y-%m-%d %H:%M:%S"'),
+        ]
+    )
 
 
 def run(commands):
@@ -152,7 +156,7 @@ def run(commands):
 
 
 def message(date):
-    return date.strftime('Contribution: %Y-%m-%d %H:%M')
+    return date.strftime("Contribution: %Y-%m-%d %H:%M")
 
 
 def contributions_per_day(args):
@@ -166,55 +170,111 @@ def contributions_per_day(args):
 
 def arguments(argsval):
     parser = argparse.ArgumentParser()
-    parser.add_argument('-m', '--mode', type=str, default='backfill',
-                        choices=['backfill', 'daily'],
-                        required=False, help="""Execution mode: 'backfill'
+    parser.add_argument(
+        "-m",
+        "--mode",
+        type=str,
+        default="backfill",
+        choices=["backfill", "daily"],
+        required=False,
+        help="""Execution mode: 'backfill'
                         generates historical commits for the past year,
                         'daily' creates a single commit for today.
-                        Default is 'backfill'.""")
-    parser.add_argument('-nw', '--no_weekends',
-                        required=False, action='store_true', default=False,
-                        help="""do not commit on weekends""")
-    parser.add_argument('-mc', '--max_commits', type=int, default=10,
-                        required=False, help="""Defines the maximum amount of
+                        Default is 'backfill'.""",
+    )
+    parser.add_argument(
+        "-nw",
+        "--no_weekends",
+        required=False,
+        action="store_true",
+        default=False,
+        help="""do not commit on weekends""",
+    )
+    parser.add_argument(
+        "-mc",
+        "--max_commits",
+        type=int,
+        default=10,
+        required=False,
+        help="""Defines the maximum amount of
                         commits a day the script can make. Accepts a number
                         from 1 to 20. If N is specified the script commits
                         from 1 to N times a day. The exact number of commits
                         is defined randomly for each day. The default value
-                        is 10.""")
-    parser.add_argument('-fr', '--frequency', type=int, default=80,
-                        required=False, help="""Percentage of days when the
+                        is 10.""",
+    )
+    parser.add_argument(
+        "-fr",
+        "--frequency",
+        type=int,
+        default=80,
+        required=False,
+        help="""Percentage of days when the
                         script performs commits. If N is specified, the script
                         will commit N%% of days in a year. The default value
-                        is 80.""")
-    parser.add_argument('-r', '--repository', type=str, required=False,
-                        help="""A link on an empty non-initialized remote git
+                        is 80.""",
+    )
+    parser.add_argument(
+        "-r",
+        "--repository",
+        type=str,
+        required=False,
+        help="""A link on an empty non-initialized remote git
                         repository. If specified, the script pushes the changes
                         to the repository. The link is accepted in SSH or HTTPS
                         format. For example: git@github.com:user/repo.git or
-                        https://github.com/user/repo.git""")
-    parser.add_argument('-un', '--user_name', type=str, required=False,
-                        help="""Overrides user.name git config.
-                        If not specified, the global config is used.""")
-    parser.add_argument('-ue', '--user_email', type=str, required=False,
-                        help="""Overrides user.email git config.
-                        If not specified, the global config is used.""")
-    parser.add_argument('-db', '--days_before', type=int, default=365,
-                        required=False, help="""Specifies the number of days
+                        https://github.com/user/repo.git""",
+    )
+    parser.add_argument(
+        "-un",
+        "--user_name",
+        type=str,
+        required=False,
+        help="""Overrides user.name git config.
+                        If not specified, the global config is used.""",
+    )
+    parser.add_argument(
+        "-ue",
+        "--user_email",
+        type=str,
+        required=False,
+        help="""Overrides user.email git config.
+                        If not specified, the global config is used.""",
+    )
+    parser.add_argument(
+        "-db",
+        "--days_before",
+        type=int,
+        default=365,
+        required=False,
+        help="""Specifies the number of days
                         before the current date when the script will start
                         adding commits. For example: if it is set to 30 the
                         first commit date will be the current date minus 30
-                        days.""")
-    parser.add_argument('-da', '--days_after', type=int, default=0,
-                        required=False, help="""Specifies the number of days
+                        days.""",
+    )
+    parser.add_argument(
+        "-da",
+        "--days_after",
+        type=int,
+        default=0,
+        required=False,
+        help="""Specifies the number of days
                         after the current date until which the script will be
                         adding commits. For example: if it is set to 30 the
                         last commit will be on a future date which is the
-                        current date plus 30 days.""")
-    parser.add_argument('-p', '--parallel', action='store_true', default=False,
-                        required=False, help="""Enable parallel commit generation
+                        current date plus 30 days.""",
+    )
+    parser.add_argument(
+        "-p",
+        "--parallel",
+        action="store_true",
+        default=False,
+        required=False,
+        help="""Enable parallel commit generation
                         for faster backfill. Uses 4 worker threads. Default is
-                        false (sequential).""")
+                        false (sequential).""",
+    )
     return parser.parse_args(argsval)
 
 

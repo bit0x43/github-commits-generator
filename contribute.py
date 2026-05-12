@@ -102,7 +102,7 @@ def run_backfill(args):
         for date in commit_dates:
             contribute(date)
 
-    if repository is not None:
+    if repository and repository.strip():
         run(["git", "remote", "add", "origin", repository])
         run(["git", "push", "-u", "origin", "main", "--force"])
 

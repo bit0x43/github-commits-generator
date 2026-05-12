@@ -30,16 +30,19 @@ Create a new **empty** GitHub repository (do not initialize with README or .giti
 
 ### 3. Run locally
 
+First, create your PAT at: https://github.com/settings/tokens
+
+Then run with your PAT inserted:
 ```bash
 python contribute.py \
   --mode daily \
-  --repository=https://x-access-token:YOUR_PAT@github.com/username/target-repo.git \
+  --repository=https://x-access-token:${PAT}@github.com/username/target-repo.git \
   --user_name="Your Name" \
   --user_email="your@email.com"
 ```
 
 Replace:
-- `YOUR_PAT` — your GitHub Personal Access Token
+- `${PAT}` — your GitHub Personal Access Token
 - `username/target-repo` — your target repository
 - `Your Name` / `your@email.com` — your GitHub credentials
 
@@ -49,12 +52,12 @@ Replace:
 
 **Daily mode** — One commit for today:
 ```bash
-python contribute.py --mode daily --repository=...
+python contribute.py --mode daily --repository=https://x-access-token:${PAT}@github.com/...
 ```
 
 **Backfill mode** — Historical commits (default):
 ```bash
-python contribute.py --mode backfill --repository=...
+python contribute.py --mode backfill --repository=https://x-access-token:${PAT}@github.com/...
 ```
 
 **Backfill with options:**
@@ -66,7 +69,7 @@ python contribute.py \
   --frequency=80 \
   --no_weekends \
   --parallel \
-  --repository=...
+  --repository=https://x-access-token:${PAT}@github.com/...
 ```
 
 ### GitHub Actions (Automated)
@@ -126,6 +129,13 @@ You can also trigger manually:
 ### "Workflow not running"
 - Verify secrets are set in repository Settings
 - Check the Actions tab for workflow runs
+
+### "Backfill is taking too long"
+Use `--parallel` flag for multi-threaded generation:
+```bash
+python contribute.py --parallel --days_before=365
+```
+A full year backfill typically completes in 30-40 seconds (sequential) or 10-15 seconds (parallel).
 
 ## License
 

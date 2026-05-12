@@ -1,7 +1,7 @@
 ---
 milestone: v1.0
 name: Pipeline Fixes & Modernization
-status: complete
+status: shipped
 progress:
   phases_complete: 5
   phases_total: 5
@@ -13,8 +13,8 @@ progress:
 
 Phase: All Complete
 Plan: All phases executed
-Status: Complete
-Last activity: 2026-05-12 — Milestone v1.0 complete
+Status: Shipped — PR #1
+Last activity: 2026-05-12 — Milestone v1.0 shipped
 
 ## Project Reference
 

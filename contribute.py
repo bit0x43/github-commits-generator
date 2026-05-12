@@ -26,25 +26,27 @@ def run_daily(args):
     user_name = args.user_name
     user_email = args.user_email
 
-    if repository is not None:
+    # Handle repository parameter - must be non-empty string to use
+    if repository and repository.strip():
         start = repository.rfind("/") + 1
         end = repository.rfind(".")
-        directory = repository[start:end]
+        if end > start:  # Valid repository path
+            directory = repository[start:end]
 
-    os.mkdir(directory)
+    os.makedirs(directory, exist_ok=True)
     os.chdir(directory)
     run(["git", "init", "-b", "main"])
 
-    if user_name is not None:
+    if user_name:
         run(["git", "config", "user.name", user_name])
 
-    if user_email is not None:
+    if user_email:
         run(["git", "config", "user.email", user_email])
 
     commit_date = curr_date.replace(hour=20, minute=0)
     contribute(commit_date)
 
-    if repository is not None:
+    if repository and repository.strip():
         run(["git", "remote", "add", "origin", repository])
         run(["git", "push", "-u", "origin", "main", "--force"])
 
@@ -57,10 +59,14 @@ def run_backfill(args):
     repository = args.repository
     user_name = args.user_name
     user_email = args.user_email
-    if repository is not None:
+
+    # Handle repository parameter - must be non-empty string to use
+    if repository and repository.strip():
         start = repository.rfind("/") + 1
         end = repository.rfind(".")
-        directory = repository[start:end]
+        if end > start:  # Valid repository path
+            directory = repository[start:end]
+
     no_weekends = args.no_weekends
     frequency = args.frequency
     days_before = args.days_before
@@ -71,14 +77,14 @@ def run_backfill(args):
         sys.exit("days_after must not be negative")
     parallel = getattr(args, "parallel", False)
 
-    os.mkdir(directory)
+    os.makedirs(directory, exist_ok=True)
     os.chdir(directory)
     run(["git", "init", "-b", "main"])
 
-    if user_name is not None:
+    if user_name:
         run(["git", "config", "user.name", user_name])
 
-    if user_email is not None:
+    if user_email:
         run(["git", "config", "user.email", user_email])
 
     commit_dates = []
@@ -96,7 +102,7 @@ def run_backfill(args):
         for date in commit_dates:
             contribute(date)
 
-    if repository is not None:
+    if repository and repository.strip():
         run(["git", "remote", "add", "origin", repository])
         run(["git", "push", "-u", "origin", "main", "--force"])
 

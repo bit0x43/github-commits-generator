@@ -10,6 +10,48 @@ import sys
 
 def main(def_args=sys.argv[1:]):
     args = arguments(def_args)
+    mode = args.mode
+
+    if mode == 'daily':
+        run_daily(args)
+    else:
+        run_backfill(args)
+
+
+def run_daily(args):
+    curr_date = datetime.now()
+    directory = 'repository-' + curr_date.strftime('%Y-%m-%d-%H-%M-%S')
+    repository = args.repository
+    user_name = args.user_name
+    user_email = args.user_email
+
+    if repository is not None:
+        start = repository.rfind('/') + 1
+        end = repository.rfind('.')
+        directory = repository[start:end]
+
+    os.mkdir(directory)
+    os.chdir(directory)
+    run(['git', 'init', '-b', 'main'])
+
+    if user_name is not None:
+        run(['git', 'config', 'user.name', user_name])
+
+    if user_email is not None:
+        run(['git', 'config', 'user.email', user_email])
+
+    commit_date = curr_date.replace(hour=20, minute=0)
+    contribute(commit_date)
+
+    if repository is not None:
+        run(['git', 'remote', 'add', 'origin', repository])
+        run(['git', 'push', '-u', 'origin', 'main', '--force'])
+
+    print('\nDaily contribution ' +
+          '\x1b[6;30;42mcompleted successfully\x1b[0m!')
+
+
+def run_backfill(args):
     curr_date = datetime.now()
     directory = 'repository-' + curr_date.strftime('%Y-%m-%d-%H-%M-%S')
     repository = args.repository
@@ -48,10 +90,9 @@ def main(def_args=sys.argv[1:]):
 
     if repository is not None:
         run(['git', 'remote', 'add', 'origin', repository])
-        # run(['git', 'branch', '-M', 'main'])
         run(['git', 'push', '-u', 'origin', 'main', '--force'])
 
-    print('\nRepository generation ' +
+    print('\nBackfill generation ' +
           '\x1b[6;30;42mcompleted successfully\x1b[0m!')
 
 
@@ -82,6 +123,12 @@ def contributions_per_day(args):
 
 def arguments(argsval):
     parser = argparse.ArgumentParser()
+    parser.add_argument('-m', '--mode', type=str, default='backfill',
+                        choices=['backfill', 'daily'],
+                        required=False, help="""Execution mode: 'backfill'
+                        generates historical commits for the past year,
+                        'daily' creates a single commit for today.
+                        Default is 'backfill'.""")
     parser.add_argument('-nw', '--no_weekends',
                         required=False, action='store_true', default=False,
                         help="""do not commit on weekends""")

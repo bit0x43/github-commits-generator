@@ -1,0 +1,40 @@
+name: Daily Contribute
+
+on:
+  schedule:
+    - cron: '0 13 * * *'
+  workflow_dispatch:
+
+jobs:
+  contribute:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Set up git
+      env:
+        TARGET_USER: ${{ secrets.TARGET_USER }}
+        TARGET_EMAIL: ${{ secrets.TARGET_EMAIL }}
+        TARGET_REPO: ${{ secrets.TARGET_REPO }}
+      run: |
+        git config --global user.name "$TARGET_USER"
+        git config --global user.email "$TARGET_EMAIL"
+        git remote set-url origin https://x-access-token:${{ secrets.ACTIONS_GITHUB_TOKEN }}@github.com/$TARGET_REPO.git
+
+    - name: Run contribute.py in daily mode
+      env:
+        GITHUB_TOKEN: ${{ secrets.ACTIONS_GITHUB_TOKEN }}
+        TARGET_USER: ${{ secrets.TARGET_USER }}
+        TARGET_EMAIL: ${{ secrets.TARGET_EMAIL }}
+        TARGET_REPO: ${{ secrets.TARGET_REPO }}
+      run: |
+        python contribute.py --mode daily \
+        --repository=https://x-access-token:${{ secrets.ACTIONS_GITHUB_TOKEN }}@github.com/$TARGET_REPO.git \
+        --user_name="$TARGET_USER" \
+        --user_email="$TARGET_EMAIL"
